@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os, random, sys, time, urlparse
+import os, random, sys, time, urlparse, csv
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
@@ -10,7 +10,7 @@ def Launch():
     if os.path.isfile('config') == False:
         print 'Error! No configuration file.'
         sys.exit()
-    
+
     # Check if the file 'visitedUsers.txt' exists, otherwise create it
     if os.path.isfile('visitedUsers.txt') == False:
         visitedUsersFile = open('visitedUsers.txt', 'wb')
@@ -112,16 +112,17 @@ def LInBot(browser):
 
             # Generate random IDs
             while True:
-                
-                profileID = str(random.randint(10000000, 99999999))
-                browser.get('https://www.linkedin.com/profile/view?id='+profileID)
+
+                #profileID = str(random.randint(10000000, 99999999))
+                profileID = (random.choice(firstname)+random.choice(lastname)).lower()
+                browser.get('https://www.linkedin.com/in/'+profileID)
                 T += 1
-                            
+
                 # Add the random ID to the visitedUsersFile
                 with open('visitedUsers.txt', 'ab') as visitedUsersFile:
                     visitedUsersFile.write(str(profileID)+'\r\n')
                 visitedUsersFile.close()
-                            
+
                 if GetNewProfilesID(BeautifulSoup(browser.page_source), profilesQueued):
                     break
                 else:
@@ -135,10 +136,12 @@ def LInBot(browser):
             print browser.title.replace(' | LinkedIn', ''), ' visited. T:', T, '| V:', V, '| Q:', len(profilesQueued)
 
             while profilesQueued:
-               
+
                 profileID = profilesQueued.pop()
-                browser.get('https://www.linkedin.com/profile/view?id='+profileID)
-               
+
+
+                browser.get('https://www.linkedin.com/in/'+profileID)
+
                 # Add the ID to the visitedUsersFile
                 with open('visitedUsers.txt', 'ab') as visitedUsersFile:
                     visitedUsersFile.write(str(profileID)+'\r\n')
@@ -179,7 +182,7 @@ def LInBot(browser):
                     time.sleep(random.uniform(5, 7)) # Otherwise, sleep to make sure everything loads
 
             print '\nNo more profiles to visit. Everything restarts with a random profile...\n'
-            
+
 
 def GetNewProfilesID(soup, profilesQueued):
     # Open, load and close
@@ -197,9 +200,18 @@ def GetNewProfilesID(soup, profilesQueued):
                     profilesID.append(profileID)
     except:
         pass
-    
+
     return profilesID
 
-    
-if __name__ == '__main__':       
+
+if __name__ == '__main__':
+    firstname = []
+    lastname = []
+    with open("./firstname.txt", "r") as f :
+        for line in f :
+            firstname.append(line.rstrip())
+
+    with open("./lastname.txt", "r") as f :
+        for line in f :
+            lastname.append(line.rstrip())
     Launch()
